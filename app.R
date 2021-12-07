@@ -19,6 +19,15 @@ ui <- fluidPage(
       selectInput(inputId = "ringNumber", label = "Number of rings", choices = levels(msrm$ring.number)),
       selectInput(inputId = "ringType", label = "Ring type", choices = levels(msrm$ring.type)), 
       
+      selectInput(inputId = "capShape", label = "capShape", choices = levels(msrm$cap.shape)), 
+      selectInput(inputId = "capSurface", label = "capSurface", choices = levels(msrm$cap.surface)), 
+      selectInput(inputId = "capColor", label = "capColor", choices = levels(msrm$cap.color)), 
+
+      selectInput(inputId = "gillAttachment", label = "gillAttachment", choices = levels(msrm$gill.attachment)), 
+      selectInput(inputId = "gillSpacing", label = "gillSpacing", choices = levels(msrm$gill.spacing)), 
+      selectInput(inputId = "gillSize", label = "gillSize", choices = levels(msrm$gill.size)), 
+      selectInput(inputId = "gillColor", label = "gillColor", choices = levels(msrm$gill.color)),
+      
       selectInput(inputId = "stalkShape", label = "stalkShape", choices = levels(msrm$stalk.shape)), 
       selectInput(inputId = "stalkRoot", label = "stalkRoot", choices = levels(msrm$stalk.root)), 
       selectInput(inputId = "stalkSurfaceAboveRing", label = "stalkSurfaceAboveRing", choices = levels(msrm$stalk.surface.above.ring)), 
@@ -26,111 +35,65 @@ ui <- fluidPage(
       selectInput(inputId = "stalkColorAboveRing", label = "stalkColorAboveRing", choices = levels(msrm$stalk.color.above.ring)), 
       selectInput(inputId = "stalkColorBelowRing", label = "stalkColorBelowRing", choices = levels(msrm$stalk.color.below.ring)), 
       
-      selectInput(inputId = "capShape", label = "capShape", choices = levels(msrm$cap.shape)), 
-      selectInput(inputId = "capSurface", label = "capSurface", choices = levels(msrm$cap.surface)), 
-      selectInput(inputId = "capColor", label = "capColor", choices = levels(msrm$cap.color)), 
-      
-      selectInput(inputId = "gillAttachment", label = "gillAttachment", choices = levels(msrm$gill.attachment)), 
-      selectInput(inputId = "gillSpacing", label = "gillSpacing", choices = levels(msrm$gill.spacing)), 
-      selectInput(inputId = "gillSize", label = "gillSize", choices = levels(msrm$gill.size)), 
-      selectInput(inputId = "gillColor", label = "gillColor", choices = levels(msrm$gill.color)),
-      
       actionButton(inputId = "btnSubmit", label = "Submit", class = "btn btn-primary")
     ),
     
     mainPanel(
-      tags$label(h3('Output')),
-      verbatimTextOutput('contents'),
-      verbatimTextOutput('textResult'),
-      verbatimTextOutput("txtout")
+      tags$label(h3("Output")),
+      verbatimTextOutput("txtArgs"),
+      verbatimTextOutput("txtResult"),
     )
   )
 )
 
 server <- function(input, output, session) {
-  datasetInput <- function(){
-    df <- data.frame(
-      Name = c("cap.shape", "cap.surface", "cap.color", "bruises", 
-               "odor", "gill.attachment", "gill.spacing", "gill.size", 
-               "gill.color", "stalk.shape", "stalk.root", 
-               "stalk.surface.above.ring", "stalk.surface.below.ring", 
-               "stalk.color.above.ring", "stalk.color.below.ring", "veil.color", 
-               "ring.number", "ring.type", "spore.print.color", "population", 
-               "habitat"),
-      Value = as.character(c(
-        input$capShape, input$capSurface, input$capColor, input$bruises, 
-        input$odor, input$gillAttachment, input$gillSpacing, input$gillSize, 
-        input$gillColor, input$stalkShape, input$stalkRoot, 
-        input$stalkSurfaceAboveRing, input$stalkSurfaceBelowRing, 
-        input$stalkColorAboveRing, input$stalkColorBelowRing, 
-        input$veilColor, input$ringNumber, input$ringType, 
-        input$sporePrintColor, input$population, input$habitat
-      )),
-      stringsAsFactors = FALSE
-    )
-    input <- transpose(df)
-    model <- readRDS("model/svm.RDS")
-    
-    input <- transpose(df)
-    write.table(input,"input.csv", sep=",", quote = FALSE, row.names = FALSE, col.names = FALSE)
-    input <- read.csv(paste("input", ".csv", sep=""), header = TRUE, stringsAsFactors = TRUE)
-    
-    levels(input$cap.shape) <- levels(msrm$cap.shape)
-    levels(input$cap.surface) <- levels(msrm$cap.surface)
-    levels(input$cap.color) <- levels(msrm$cap.color)
-    
-    levels(input$bruises) <- levels(msrm$bruises)
-    
-    levels(input$odor) <- levels(msrm$odor)
-    
-    levels(input$gill.attachment) <- levels(msrm$gill.attachment)
-    levels(input$gill.spacing) <- levels(msrm$gill.spacing) 
-    levels(input$gill.size) <- levels(msrm$gill.size) 
-    levels(input$gill.color) <- levels(msrm$gill.color)
-    
-    levels(input$stalk.shape) <- levels(msrm$stalk.shape)
-    levels(input$stalk.root) <- levels(msrm$stalk.root)
-    levels(input$stalk.surface.above.ring) <- levels(msrm$stalk.surface.above.ring)
-    levels(input$stalk.surface.below.ring) <- levels(msrm$stalk.surface.below.ring)
-    levels(input$stalk.color.above.ring) <- levels(msrm$stalk.color.above.ring)
-    levels(input$stalk.color.below.ring) <- levels(msrm$stalk.color.below.ring)
-    
-    levels(input$veil.color) <- levels(msrm$veil.color)
-    
-    levels(input$ring.number) <- levels(msrm$ring.number)
-    levels(input$ring.type) <- levels(msrm$ring.type)
-    
-    levels(input$spore.print.color) <- levels(msrm$spore.print.color)
-    
-    
-    levels(input$population) <- levels(msrm$population)
-    
-    levels(input$habitat) <- levels(msrm$habitat)    
-    
-    return(df)
-  }
+  model <- readRDS("model/svm.RDS")
   
-  output$contents <- renderPrint({
-    if (input$btnSubmit > 0) { 
-      isolate("Calculation complete.") 
-    } else {
-      return("Server is ready for calculation.")
-    }
+  output$txtResult <- renderText({
+    paste("Server ready for calculation")
   })
   
-  output$textResult <- renderText({
-    paste(datasetInput())
+  observeEvent(eventExpr = input$btnSubmit, handlerExpr = {
+    output$txtArgs <- renderText({
+      paste(input.df(input))
+    })
+    
+    output$txtResult <- renderText({
+      paste(predict(model, input.df(input)))
+    })
   })
-  
-  output$txtout <- renderText({
-    paste(input$capShape, input$capSurface, input$capColor, input$bruises, 
-          input$odor, input$gillAttachment, input$gillSpacing, input$gillSize, 
-          input$gillColor, input$stalkShape, input$stalkRoot, 
-          input$stalkSurfaceAboveRing, input$stalkSurfaceBelowRing, 
-          input$stalkColorAboveRing, input$stalkColorBelowRing, 
-          input$veilColor, input$ringNumber, input$ringType, 
-          input$sporePrintColor, input$population, input$habitat, sep = "\n")
-  })
+}
+
+input.df <- function(input){
+  df <- data.frame(
+    odor = factor(x = input$odor, levels = levels(msrm$odor)),
+    habitat = factor(x = input$habitat, levels = levels(msrm$habitat)),
+    population = factor(x = input$population, levels = levels(msrm$population)),
+    bruises = factor(x = input$bruises, levels = levels(msrm$bruises)),
+    veil.color = factor(x = input$veilColor, levels = levels(msrm$veil.color)),
+    spore.print.color = factor(x = input$sporePrintColor, levels = levels(msrm$spore.print.color)),
+    
+    ring.number = factor(x = input$ringNumber, levels = levels(msrm$ring.number)),
+    ring.type = factor(x = input$ringType, levels = levels(msrm$ring.type)),
+    
+    cap.shape = factor(x = input$capShape, levels = levels(msrm$cap.shape)),
+    cap.surface = factor(x = input$capSurface, levels = levels(msrm$cap.surface)),
+    cap.color = factor(x = input$capColor, levels = levels(msrm$cap.color)),
+    
+    gill.attachment = factor(x = input$gillAttachment, levels = levels(msrm$gill.attachment)),
+    gill.spacing = factor(x = input$gillSpacing, levels = levels(msrm$gill.spacing)),
+    gill.size = factor(x = input$gillSize, levels = levels(msrm$gill.size)),
+    gill.color = factor(x = input$gillColor, levels = levels(msrm$gill.color)),
+    stalk.shape = factor(x = input$stalkShape, levels = levels(msrm$stalk.shape)),
+    
+    stalk.root = factor(x = input$stalkRoot, levels = levels(msrm$stalk.root)),
+    stalk.surface.above.ring = factor(x = input$stalkSurfaceAboveRing, levels = levels(msrm$stalk.surface.above.ring)),
+    stalk.surface.below.ring = factor(x = input$stalkSurfaceBelowRing, levels = levels(msrm$stalk.surface.below.ring)),
+    stalk.color.above.ring = factor(x = input$stalkColorAboveRing, levels = levels(msrm$stalk.color.above.ring)),
+    stalk.color.below.ring = factor(x = input$stalkColorBelowRing, levels = levels(msrm$stalk.color.below.ring)),
+    stringsAsFactors = FALSE
+  )
+  return(df)
 }
 
 shinyApp(ui = ui, server = server)
