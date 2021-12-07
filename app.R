@@ -6,61 +6,64 @@ msrm <- read.csv(file = "data/mushroom_factored.csv", stringsAsFactors = TRUE)
 
 ui <- fluidPage(
   titlePanel("Mushroom Edibility Identification"),
-  
-  sidebarLayout(
+  fluidRow(
     sidebarPanel(
-      selectInput(inputId = "odor", label = "Odor", choices = levels(msrm$odor)),
-      selectInput(inputId = "habitat", label = "Habitat", choices = levels(msrm$habitat)),
-      selectInput(inputId = "population", label = "Population", choices = levels(msrm$population)),
-      selectInput(inputId = "bruises", label = "Bruises", choices = levels(msrm$bruises)),
-      selectInput(inputId = "veilColor", label = "Veil color", choices = levels(msrm$veil.color)),
-      selectInput(inputId = "sporePrintColor", label = "Spore print color", choices = levels(msrm$spore.print.color)),
-      
-      selectInput(inputId = "ringNumber", label = "Number of rings", choices = levels(msrm$ring.number)),
-      selectInput(inputId = "ringType", label = "Ring type", choices = levels(msrm$ring.type)), 
-      
+      width = 2,
+      selectInput(inputId = "odor", label = "odor", choices = levels(msrm$odor)),
+      selectInput(inputId = "habitat", label = "habitat", choices = levels(msrm$habitat)),
+      selectInput(inputId = "population", label = "population", choices = levels(msrm$population)),
+      selectInput(inputId = "bruises", label = "bruises", choices = levels(msrm$bruises)),
+      selectInput(inputId = "sporePrintColor", label = "sporePrintColor", choices = levels(msrm$spore.print.color)),
+    ),
+    sidebarPanel(
+      width = 2,
       selectInput(inputId = "capShape", label = "capShape", choices = levels(msrm$cap.shape)), 
       selectInput(inputId = "capSurface", label = "capSurface", choices = levels(msrm$cap.surface)), 
       selectInput(inputId = "capColor", label = "capColor", choices = levels(msrm$cap.color)), 
-
+      
+      selectInput(inputId = "ringNumber", label = "ringNumber", choices = levels(msrm$ring.number)),
+      selectInput(inputId = "ringType", label = "ringType", choices = levels(msrm$ring.type)), 
+    ),
+    
+    sidebarPanel(
+      width = 2,
       selectInput(inputId = "gillAttachment", label = "gillAttachment", choices = levels(msrm$gill.attachment)), 
       selectInput(inputId = "gillSpacing", label = "gillSpacing", choices = levels(msrm$gill.spacing)), 
       selectInput(inputId = "gillSize", label = "gillSize", choices = levels(msrm$gill.size)), 
       selectInput(inputId = "gillColor", label = "gillColor", choices = levels(msrm$gill.color)),
       
+      selectInput(inputId = "veilColor", label = "veilColor", choices = levels(msrm$veil.color)),
+    ),
+    
+    sidebarPanel(
+      width = 2,
       selectInput(inputId = "stalkShape", label = "stalkShape", choices = levels(msrm$stalk.shape)), 
       selectInput(inputId = "stalkRoot", label = "stalkRoot", choices = levels(msrm$stalk.root)), 
       selectInput(inputId = "stalkSurfaceAboveRing", label = "stalkSurfaceAboveRing", choices = levels(msrm$stalk.surface.above.ring)), 
       selectInput(inputId = "stalkSurfaceBelowRing", label = "stalkSurfaceBelowRing", choices = levels(msrm$stalk.surface.below.ring)), 
       selectInput(inputId = "stalkColorAboveRing", label = "stalkColorAboveRing", choices = levels(msrm$stalk.color.above.ring)), 
-      selectInput(inputId = "stalkColorBelowRing", label = "stalkColorBelowRing", choices = levels(msrm$stalk.color.below.ring)), 
-      
-      actionButton(inputId = "btnSubmit", label = "Submit", class = "btn btn-primary")
+      selectInput(inputId = "stalkColorBelowRing", label = "stalkColorBelowRing", choices = levels(msrm$stalk.color.below.ring)),
     ),
     
-    mainPanel(
-      tags$label(h3("Output")),
-      verbatimTextOutput("txtArgs"),
+    column(
+      width = 4,
+      tags$label(h4("Output")),
       verbatimTextOutput("txtResult"),
     )
   )
 )
 
 server <- function(input, output, session) {
-  model <- readRDS("model/svm.RDS")
+  model.svm <- readRDS("model/svm.RDS")
   
   output$txtResult <- renderText({
-    paste("Server ready for calculation")
-  })
-  
-  observeEvent(eventExpr = input$btnSubmit, handlerExpr = {
-    output$txtArgs <- renderText({
-      paste(input.df(input))
-    })
+    start <- Sys.time()
+    prediction <- predict(model.svm, input.df(input))
+    executionTime <- Sys.time() - start
     
-    output$txtResult <- renderText({
-      paste(predict(model, input.df(input)))
-    })
+    paste("Model\t: Support Vector Machine (SVM)",
+          "\nTime\t:", executionTime , "seconds",
+          "\nResult\t:", prediction)
   })
 }
 
