@@ -6,6 +6,8 @@ msrm <- read.csv(file = "data/mushroom_factored.csv", stringsAsFactors = TRUE)
 
 ui <- fluidPage(
   titlePanel("Mushroom Edibility Identification"),
+  p("Is this mushroom safe to eat or a deadly poison?"),
+  hr(),
   fluidRow(
     sidebarPanel(
       width = 2,
@@ -49,8 +51,11 @@ ui <- fluidPage(
       width = 4,
       tags$label(h4("Output")),
       verbatimTextOutput("txtResult"),
+      hr(),
+      HTML("<p>Developed by Deddy Romnan Rumapea (2021).</p>
+           <a href='#'>Read documentation.</a>"),
     )
-  )
+  ),
 )
 
 server <- function(input, output, session) {
