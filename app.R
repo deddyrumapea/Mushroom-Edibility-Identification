@@ -53,7 +53,7 @@ ui <- fluidPage(
       verbatimTextOutput("txtResult"),
       hr(),
       HTML("<p>Developed by Deddy Romnan Rumapea (2021).</p>
-           <a href='#'>Read documentation.</a>"),
+           <a href='https://drive.google.com/file/d/19TIFOgYGADOsx15ud12REoVWvJ2aCwhG/'>Read documentation.</a>"),
     )
   ),
 )

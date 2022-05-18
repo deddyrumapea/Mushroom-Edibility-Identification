@@ -1,6 +1,6 @@
 library(e1071)
 library(caret)
-library(devtools)
+# library(devtools)
 
 msrm <- read.csv(file = "data/mushroom_factored.csv", stringsAsFactors = TRUE)
 
